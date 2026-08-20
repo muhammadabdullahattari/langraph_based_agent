@@ -30,3 +30,16 @@ class AgentState(TypedDict):
     approval: bool | None
 
     trace: list[dict[str, Any]]
+    
+    tool_call_count: int
+    max_tool_calls: int
+    tool_limit_reached: bool
+
+    reflection_result: str | None
+    reflection_feedback: str | None
+    reflection_retry_count: int
+    max_reflection_retries: int
+
+    retrieved_memories: list[str]
+    conversation_summary: str | None
+    fallback_reason: str | None

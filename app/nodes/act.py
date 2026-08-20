@@ -2,6 +2,7 @@ from app.state.agent_state import AgentState
 from app.nodes.trace import add_trace
 from app.tools import calculator,search_database,failing_tool,web_search
 
+
 TOOLS = {
     "calculator": calculator,
     "search_database": search_database,
@@ -11,9 +12,19 @@ TOOLS = {
 
 
 def act_node(state: AgentState) -> dict:
+    tool_call_count = state.get("tool_call_count", 0)
+    max_tool_calls = state.get("max_tool_calls", 5)
+    
     tool_name = state["tool_name"]
     tool_input = state["tool_input"]
-
+    
+    if tool_call_count >= MAX_TOOL_CALLS:
+        return {
+            "tool_limit_reached": True,
+            "error": "Maximum tool-call limit of 5 reached.",
+            "completed": True,
+        }
+        
     if not tool_name:
         return {"error": "No tool selected.", "completed": True}
 
@@ -43,8 +54,11 @@ def act_node(state: AgentState) -> dict:
         result = tool.invoke(tool_input or {})
         tool_results = dict(state["tool_results"])
         tool_results[cache_key] = result
+        tool_call_count += 1
 
         return {
+            "tool_call_count": tool_call_count,
+            "tool_limit_reached": tool_call_count >= max_tool_calls,
             "previous_result": state["result"],
             "result": result,
             "tool_result": result,
